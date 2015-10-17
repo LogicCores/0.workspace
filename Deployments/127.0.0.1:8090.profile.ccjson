@@ -1,0 +1,15 @@
+{
+    "@auth.passport": {
+        "$io.zerosystem.workspace.x.auth": {
+            "$0.profiles.pio.decrypt()->.": {
+        		"passport": {
+        		    "github": {
+        		        "configUrl": "https://github.com/settings/applications/254671",
+        		        "clientID": "a9754de45e9eaa003ccd",
+        		        "clientSecret": "[ENCRYPTED:PIO_PROFILE_KEY+PIO_PROFILE_SECRET:f522549b2b116cbb895416e000e6f67f:535016a9674e0b3d6ff8fc74c1cd2087644af2a06a0d7a10d3e6686d7683d9436e5f407d57b1f973d9be4ee203e5a924]"
+        		    }
+        		}
+            }
+        }
+    }
+}

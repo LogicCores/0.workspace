@@ -1,0 +1,17 @@
+{
+    "@": {
+        "$": [
+            [
+                "./stack.proto.ccjson",
+                {
+                    "namespace": "io.zerosystem.workspace.x",
+                    "name": "io.zerosystem.workspace.x",
+                    "label": "io.zerosystem.workspace.x",
+                    "stackBasePath": "{{__DIRNAME__}}",
+                    "subUri": "/io.zerosystem.workspace.x",
+                    "skin": "SemanticUI"
+                }
+            ]
+        ]
+    }
+}
