@@ -3,4 +3,4 @@
 	url = git://github.com/LogicCores/0.git
 [submodule "0.dev"]
 	path = 0.dev
-	url = git@github.com:LogicCores/0.dev.git
+url=git://github.com/LogicCores/0.dev.git
