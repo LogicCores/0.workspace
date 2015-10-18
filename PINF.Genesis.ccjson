@@ -2,7 +2,7 @@
     "@": {
         "$": [
             "./io.zerosystem.workspace.x/stack.ccjson",
-            "./0/PINF.Genesis.ccjson",
+            "{{ENV.Z0_ROOT}}/PINF.Genesis.ccjson",
             "./Deployments/{{ENV.ENVIRONMENT_NAME}}.profile.ccjson"
         ]
     }

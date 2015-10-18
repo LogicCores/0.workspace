@@ -5,3 +5,5 @@
 .sm.*
 .rt/
 .cache/
+npm-debug.log
+.gitmodules.initialized

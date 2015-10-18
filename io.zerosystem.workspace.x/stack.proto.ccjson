@@ -2,7 +2,7 @@
     "@": {
         "$": [
             [
-                "../0/0.stack/stack.proto.ccjson",
+                "{{ENV.Z0_ROOT}}/0.stack/stack.proto.ccjson",
                 {
                     "stackIndex": 5
                 }

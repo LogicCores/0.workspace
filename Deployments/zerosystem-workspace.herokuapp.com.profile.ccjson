@@ -4,6 +4,23 @@
             "host": "zerosystem-workspace.herokuapp.com"
         }
     },
+    "@invite.cookie": {
+        "$0.invite.cookie": {
+    		"$0.profile.virtualcloud.hashForAspect()->token": {
+    		    "stream": "production"
+    		}
+        }
+    },
+    "@session.express.fs": {
+        "$io.zerosystem.workspace.x.session.express.fs": {
+    		"$0.profile.virtualcloud.hashForAspect()->secret": {
+    		    "stream": "production"
+    		},
+    		"$0.profile.virtualcloud.hashForAspect()->store/secret": {
+    		    "stream": "production"
+    		}
+        }
+    },
     "@auth.passport": {
         "$io.zerosystem.workspace.x.auth": {
             "$0.profiles.pio.decrypt()->.": {
