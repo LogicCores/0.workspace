@@ -39,6 +39,8 @@ function init {
 	if [ -z "$Z0_ROOT" ]; then
 		if [ -e "$WORKSPACE_DIRECTORY/.0.lock" ]; then
 			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/.0.lock"
+		elif [ -e "$WORKSPACE_DIRECTORY/../.0.lock" ]; then
+			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/../.0.lock"
 		elif [ -e "$__BO_DIR__/../0" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0"
 		elif [ -e "$__BO_DIR__/../0.dev" ]; then
@@ -48,6 +50,8 @@ function init {
 			Z0_ROOT="$Z0_HOME/.0~commit-ish~$Z0_REPOSITORY_COMMIT_ISH"
 		fi
 	fi
+
+	BO_log "$VERBOSE" "Z0_ROOT: $Z0_ROOT"
 
 
 	function Install {
