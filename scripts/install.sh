@@ -39,7 +39,7 @@ function init {
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0.dev"
 		else
 			MANIPULATE_Z0_ROOT="1"
-			Z0_ROOT="$Z0_HOME/.0.commit-ish.$Z0_REPOSITORY_COMMIT_ISH"
+			Z0_ROOT="$Z0_HOME/.0~commit-ish~$Z0_REPOSITORY_COMMIT_ISH"
 		fi
 	fi
 
