@@ -4,6 +4,9 @@
     "scripts": {
         "install": "scripts/expand.sh",
         "start": ".0/0.CloudIDE.Genesis/scripts/run.sh",
+        "dev": ".0/0.CloudIDE.Genesis/scripts/dev.sh",
+        "deploy": "scripts/deploy.sh",
+        "publish": ".0/0.CloudIDE.Genesis/scripts/publish.sh",
         "clean": ".0/0.CloudIDE.Genesis/scripts/contract.sh"
     },
     "dependencies": {

@@ -29,15 +29,13 @@ This workspace is based on [0.CloudIDE.Genesis](https://github.com/CloudIDE-Plug
 	npm install
 	npm start
 
-
 	# In Cloud9 Terminal to run & deploy System and its enhanced Workspace:
 
-	dev.sh          # Run local development server
+	npm run dev      # Run local development server
 	# A list of hostnames for access with a browser will be logged
 
-	deploy.sh       # Deploy to heroku
-	publish.sh      # Publish releases for distribution
-
+	npm run deploy   # Deploy to heroku
+	npm run publish  # Publish releases for distribution
 
 	# In Terminal to reset the System Workspace when done:
 
