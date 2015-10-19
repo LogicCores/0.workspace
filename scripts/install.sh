@@ -8,7 +8,9 @@ if [ -z "$HOME" ]; then
 	exit 1
 fi
 
-node_modules/.bin/bash.origin BO install
+if [ -e "node_modules/.bin/bash.origin" ]; then
+	node_modules/.bin/bash.origin BO install
+fi
 
 # Source https://github.com/bash-origin/bash.origin
 . "$HOME/.bash.origin"
@@ -49,28 +51,51 @@ function init {
 
 		pushd "$WORKSPACE_DIRECTORY" > /dev/null
 
+			BO_log "$VERBOSE" "WORKSPACE_DIRECTORY: $WORKSPACE_DIRECTORY"
+
 			if [ ! -e ".0" ]; then
 
 				if [ "$MANIPULATE_Z0_ROOT" == "1" ]; then
+
 					BO_log "$VERBOSE" "Ensure repo '$Z0_REPOSITORY_URL' is cloned to '$Z0_ROOT' for commit-ish '$Z0_REPOSITORY_COMMIT_ISH'"
-				    if [ ! -e "$Z0_ROOT" ]; then
-					    if [ ! -e "$(dirname $Z0_ROOT)" ]; then
-					        mkdir -p "$(dirname $Z0_ROOT)"
-				        fi
-				        git clone $Z0_REPOSITORY_URL $Z0_ROOT
-				    fi
+					
+					function cloneAndInstall {
+
+					    if [ ! -e "$Z0_ROOT" ]; then
+						    if [ ! -e "$(dirname $Z0_ROOT)" ]; then
+						        mkdir -p "$(dirname $Z0_ROOT)"
+					        fi
+					        git clone $Z0_REPOSITORY_URL $Z0_ROOT
+					    fi
+
+						pushd "$Z0_ROOT" > /dev/null
+				    		BO_log "$VERBOSE" "Checkout commit-ish: $Z0_REPOSITORY_COMMIT_ISH"
 	
-					pushd "$Z0_ROOT" > /dev/null
-			    		BO_log "$VERBOSE" "Checkout commit-ish: $Z0_REPOSITORY_COMMIT_ISH"
-					    git reset --hard
-					    git checkout -b "$Z0_REPOSITORY_COMMIT_ISH" || git checkout "$Z0_REPOSITORY_COMMIT_ISH"
-					    git fetch origin "$Z0_REPOSITORY_COMMIT_ISH" || true
-					    git pull origin "$Z0_REPOSITORY_COMMIT_ISH" || true
-					    git clean -df
-			
-			    		BO_log "$VERBOSE" "Ensure installed '$Z0_ROOT'"
-						npm install
-					popd > /dev/null
+						    git reset --hard
+						    git checkout -b "$Z0_REPOSITORY_COMMIT_ISH" || git checkout "$Z0_REPOSITORY_COMMIT_ISH"
+						    git fetch origin "$Z0_REPOSITORY_COMMIT_ISH" || true
+						    git pull origin "$Z0_REPOSITORY_COMMIT_ISH" || true
+						    git clean -df
+				
+				    		BO_log "$VERBOSE" "Ensure installed '$Z0_ROOT'"
+							npm install
+	
+							touch ".done"
+						popd > /dev/null
+					}
+
+				    if [ -e "$Z0_ROOT" ]; then
+			    		if [ ! -e "$Z0_ROOT/.done" ]; then
+			    			FAILED_DIR="$Z0_ROOT.failed.$(date +"%Y-%m-%d_%H-%M-%S")"
+				    		BO_log "$VERBOSE" "'.done' not found in '$Z0_ROOT' so we move everything to '$FAILED_DIR'"
+				    		mv "$Z0_ROOT" "$FAILED_DIR"
+							cloneAndInstall
+						else
+				    		BO_log "$VERBOSE" "Found installed zero system implementation at '$Z0_ROOT'"
+						fi
+					else
+						cloneAndInstall
+			    	fi
 				fi
 
 	    		BO_log "$VERBOSE" "Using zero system implementation from '$Z0_ROOT' for '$WORKSPACE_DIRECTORY/.0'"
