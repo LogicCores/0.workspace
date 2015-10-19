@@ -34,13 +34,15 @@ function init {
 	fi
 
 	BO_log "$VERBOSE" "WORKSPACE_DIRECTORY: $WORKSPACE_DIRECTORY"
+	BO_log "$VERBOSE" "'WORKSPACE_DIRECTORY': $(ls -al $WORKSPACE_DIRECTORY)"
+	BO_log "$VERBOSE" "'WORKSPACE_DIRECTORY/../..': $(ls -al $WORKSPACE_DIRECTORY/../..)"
 
 	MANIPULATE_Z0_ROOT="0"
 	if [ -z "$Z0_ROOT" ]; then
 		if [ -e "$WORKSPACE_DIRECTORY/.0.lock" ]; then
 			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/.0.lock"
-		elif [ -e "$WORKSPACE_DIRECTORY/../.0.lock" ]; then
-			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/../.0.lock"
+		elif [ -e "$WORKSPACE_DIRECTORY/../../.0.lock" ]; then
+			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/../../.0.lock"
 		elif [ -e "$__BO_DIR__/../0" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0"
 		elif [ -e "$__BO_DIR__/../0.dev" ]; then
