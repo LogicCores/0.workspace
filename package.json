@@ -1,4 +1,6 @@
 {
+  "name": "0.workspace",
+  "version": "0.0.0",
   "scripts": {
     "install": "0/0.CloudIDE.Genesis/scripts/expand.sh",
     "start": "0/0.CloudIDE.Genesis/scripts/run.sh",

@@ -1,0 +1,15 @@
+/.c9/
+/.bash.origin.cache/
+.sm.*
+.rt/
+.cache
+npm-debug.log
+.gitmodules.initialized
+/_exports/
+
+/.gitmodules
+/.npmignore
+/0*
+/_exports/
+/.0
+/Deployments/zerosystem-workspace.herokuapp.com.profile.ccjson
