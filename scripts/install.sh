@@ -39,14 +39,15 @@ function init {
 
 	MANIPULATE_Z0_ROOT="0"
 	if [ -z "$Z0_ROOT" ]; then
-		if [ -e "$WORKSPACE_DIRECTORY/.0.lock" ]; then
-			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/.0.lock"
-		elif [ -e "$WORKSPACE_DIRECTORY/../../.0.lock" ]; then
-			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/../../.0.lock"
-		elif [ -e "$__BO_DIR__/../0" ]; then
+		if [ -e "$__BO_DIR__/../0" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0"
 		elif [ -e "$__BO_DIR__/../0.dev" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0.dev"
+		# Used when called via 'npm install 0.workspace' as '0' and '0.dev' submodules are not present
+		elif [ -e "$WORKSPACE_DIRECTORY/.0" ]; then
+			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/.0"
+		elif [ -e "$WORKSPACE_DIRECTORY/../../.0" ]; then
+			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/../../.0"
 		else
 			MANIPULATE_Z0_ROOT="1"
 			Z0_ROOT="$Z0_HOME/.0~commit-ish~$Z0_REPOSITORY_COMMIT_ISH"
