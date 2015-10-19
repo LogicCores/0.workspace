@@ -33,10 +33,12 @@ function init {
 		Z0_HOME="$HOME/.Z0"
 	fi
 
+	BO_log "$VERBOSE" "WORKSPACE_DIRECTORY: $WORKSPACE_DIRECTORY"
+
 	MANIPULATE_Z0_ROOT="0"
 	if [ -z "$Z0_ROOT" ]; then
-		if [ -e "$__BO_DIR__/../.0.lock" ]; then
-			BO_realpath "Z0_ROOT" "$__BO_DIR__/../.0.lock"
+		if [ -e "$WORKSPACE_DIRECTORY/.0.lock" ]; then
+			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/.0.lock"
 		elif [ -e "$__BO_DIR__/../0" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0"
 		elif [ -e "$__BO_DIR__/../0.dev" ]; then
@@ -52,8 +54,6 @@ function init {
 		BO_format "$VERBOSE" "HEADER" "Installing Zero System ..."
 
 		pushd "$WORKSPACE_DIRECTORY" > /dev/null
-
-			BO_log "$VERBOSE" "WORKSPACE_DIRECTORY: $WORKSPACE_DIRECTORY"
 
 			if [ ! -e ".0" ]; then
 
