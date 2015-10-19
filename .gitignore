@@ -6,3 +6,4 @@
 npm-debug.log
 .gitmodules.initialized
 /_exports/
+/node_modules/

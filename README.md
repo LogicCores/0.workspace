@@ -12,10 +12,17 @@ Instructions
   3. Rename and add remote for the heroku application `git remote add heroku git@heroku.com:zerosystem-workspace.git`
 
 
-Commands
---------
+Install & Run
+-------------
 
-The workspace is based on [0.CloudIDE.Genesis](https://github.com/CloudIDE-Plugins/0.CloudIDE.Genesis):
+This workspace is based on [0.CloudIDE.Genesis](https://github.com/CloudIDE-Plugins/0.CloudIDE.Genesis).
+
+### Required
+
+  * [NodeJS 4+](https://nodejs.org/)
+  * OSX (only for now)
+
+### Commands
 
 	# In Terminal to boot System Workspace:
 
