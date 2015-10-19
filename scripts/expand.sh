@@ -44,8 +44,6 @@ function init {
 		elif [ -e "$__BO_DIR__/../0.dev" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0.dev"
 		# Used when called via 'npm install 0.workspace' as '0' and '0.dev' submodules are not present
-		elif [ -e "$WORKSPACE_DIRECTORY/.0" ]; then
-			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/.0"
 		elif [ -e "$WORKSPACE_DIRECTORY/../../.0" ]; then
 			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/../../.0"
 		else
@@ -57,8 +55,8 @@ function init {
 	BO_log "$VERBOSE" "Z0_ROOT: $Z0_ROOT"
 
 
-	function Install {
-		BO_format "$VERBOSE" "HEADER" "Installing Zero System ..."
+	function EnsureZeroSystem {
+		BO_format "$VERBOSE" "HEADER" "Ensuring Zero System is installed and linked to '$WORKSPACE_DIRECTORY/.0' ..."
 
 		pushd "$WORKSPACE_DIRECTORY" > /dev/null
 
@@ -85,10 +83,10 @@ function init {
 						    git fetch origin "$Z0_REPOSITORY_COMMIT_ISH" || true
 						    git pull origin "$Z0_REPOSITORY_COMMIT_ISH" || true
 						    git clean -df
-				
+
 				    		BO_log "$VERBOSE" "Ensure installed '$Z0_ROOT'"
 							npm install
-	
+
 							touch ".done"
 						popd > /dev/null
 					}
@@ -111,14 +109,29 @@ function init {
 				ln -s "$Z0_ROOT" ".0"
 			fi
 
-			BO_sourcePrototype ".0/0.CloudIDE.Genesis/scripts/expand.sh" $@
-
 		popd > /dev/null
 
 		BO_format "$VERBOSE" "FOOTER"
 	}
 
-	Install $@
+	function ExpandWorkspace {
+		if [ -e "$WORKSPACE_DIRECTORY/.git" ]; then
+			BO_format "$VERBOSE" "HEADER" "Expanding Workspace ..."
+
+			pushd "$WORKSPACE_DIRECTORY" > /dev/null
+
+				# If we are cloned in source mode we expand ourselves otherwise we don't care as we are not being run directly
+	    		BO_log "$VERBOSE" "Expanding source repo '$WORKSPACE_DIRECTORY' ..."
+				".0/0.CloudIDE.Genesis/scripts/expand.sh"
+
+			popd > /dev/null
+
+			BO_format "$VERBOSE" "FOOTER"
+		fi
+	}
+
+	EnsureZeroSystem $@
+	ExpandWorkspace $@
 
 }
 init $@
