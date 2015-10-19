@@ -35,7 +35,9 @@ function init {
 
 	MANIPULATE_Z0_ROOT="0"
 	if [ -z "$Z0_ROOT" ]; then
-		if [ -e "$__BO_DIR__/../0" ]; then
+		if [ -e "$__BO_DIR__/../.0.lock" ]; then
+			BO_realpath "Z0_ROOT" "$__BO_DIR__/../.0.lock"
+		elif [ -e "$__BO_DIR__/../0" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0"
 		elif [ -e "$__BO_DIR__/../0.dev" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0.dev"
