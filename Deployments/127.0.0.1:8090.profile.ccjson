@@ -1,4 +1,9 @@
 {
+    "@": {
+        "$": [
+            "{{ENV.Z0_ROOT}}/Deployments/development.proto.profile.ccjson"
+        ]
+    },
     "@auth.passport": {
         "$io.zerosystem.workspace.x.auth": {
             "$0.profiles.pio.decrypt()->.": {
