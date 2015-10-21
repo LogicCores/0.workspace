@@ -13,3 +13,8 @@ npm-debug.log
 node_modules
 bower_components
 .0
+/.c9
+/.bash.origin.cache
+.cache
+/.0
+/_exports/deploy
