@@ -23,6 +23,14 @@ function init {
 	if [ -z "$WORKSPACE_DIRECTORY" ]; then
 		WORKSPACE_DIRECTORY="$PWD"
 	fi
+
+echo "Z0 workspace install ENV"
+
+printenv
+
+#	export Z0_REPOSITORY_URL="git://github.com/LogicCores/0.git"
+#	export Z0_REPOSITORY_COMMIT_ISH="v0.0.6"
+
 	if [ -z "$Z0_REPOSITORY_COMMIT_ISH" ]; then
 		Z0_REPOSITORY_COMMIT_ISH="master"
 	fi

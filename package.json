@@ -1,6 +1,9 @@
 {
     "name": "0.workspace",
     "version": "0.0.12",
+    "config": {
+        "Z0_REPOSITORY_COMMIT_ISH": "v0.0.7"
+    },
     "scripts": {
         "install": "scripts/expand.sh",
         "start": ".0/0.CloudIDE.Genesis/scripts/run.sh",
