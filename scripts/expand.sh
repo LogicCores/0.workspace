@@ -24,18 +24,29 @@ function init {
 		WORKSPACE_DIRECTORY="$PWD"
 	fi
 
-echo "Z0 workspace install ENV"
 
-printenv
+	# If being installed as a dependency we do not expand ourselves.
+	if [ "$(basename $WORKSPACE_DIRECTORY)" === "0.workspace" ]; then
+		if [ "$(basename $(dirname $WORKSPACE_DIRECTORY))" === "node_modules" ]; then
+			echo "Skip expansion of '0.workspace' itself as it is being installed as a dependency."
+			exit 0;
+		fi
+	fi
 
-#	export Z0_REPOSITORY_URL="git://github.com/LogicCores/0.git"
-#	export Z0_REPOSITORY_COMMIT_ISH="v0.0.6"
 
 	if [ -z "$Z0_REPOSITORY_COMMIT_ISH" ]; then
-		Z0_REPOSITORY_COMMIT_ISH="master"
+		if [ ! -z "$npm_package_config_Z0_REPOSITORY_COMMIT_ISH" ]; then
+			Z0_REPOSITORY_COMMIT_ISH="$npm_package_config_Z0_REPOSITORY_COMMIT_ISH"
+		else
+			Z0_REPOSITORY_COMMIT_ISH="master"
+		fi
 	fi
 	if [ -z "$Z0_REPOSITORY_URL" ]; then
-		Z0_REPOSITORY_URL="git://github.com/LogicCores/0.git"
+		if [ ! -z "$npm_package_config_Z0_REPOSITORY_URL" ]; then
+			Z0_REPOSITORY_URL="$npm_package_config_Z0_REPOSITORY_URL"
+		else
+			Z0_REPOSITORY_URL="git://github.com/LogicCores/0.git"
+		fi
 	fi
 	if [ -z "$Z0_HOME" ]; then
 		Z0_HOME="$HOME/.Z0"
