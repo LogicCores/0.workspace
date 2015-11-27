@@ -63,9 +63,7 @@ function init {
 	if [ -z "$Z0_ROOT" ]; then
 		if [ -e "$__BO_DIR__/../0" ]; then
 			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0"
-		elif [ -e "$__BO_DIR__/../0.dev" ]; then
-			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0.dev"
-		# Used when called via 'npm install 0.workspace' as '0' and '0.dev' submodules are not present
+		# Used when called via 'npm install 0.workspace' as '0' submodule is not present
 		elif [ -e "$WORKSPACE_DIRECTORY/../../.0" ]; then
 			BO_realpath "Z0_ROOT" "$WORKSPACE_DIRECTORY/../../.0"
 		else
