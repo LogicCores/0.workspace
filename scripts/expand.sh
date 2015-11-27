@@ -34,6 +34,9 @@ function init {
 	fi
 
 
+	export BO_SYSTEM_CACHE_DIR="$HOME/.Z0/.bash.origin.cache"
+
+
 	if [ -z "$Z0_REPOSITORY_COMMIT_ISH" ]; then
 		if [ ! -z "$npm_package_config_Z0_REPOSITORY_COMMIT_ISH" ]; then
 			Z0_REPOSITORY_COMMIT_ISH="$npm_package_config_Z0_REPOSITORY_COMMIT_ISH"
