@@ -5,6 +5,10 @@ The [Zero System](http://ZeroSystem.io) base workspace which you can deploy and 
 
 You can have a complete *Web Software System* deployed in less than 5 minutes. After everything is confirmed running you can make incremental changes to shape it to your needs.
 
+User support/patches chat: [![Chat](https://badges.gitter.im/gitterHQ/services.png)](https://gitter.im/0system/0system.0)
+
+Internal development chat: [![Chat](https://badges.gitter.im/gitterHQ/services.png)](https://gitter.im/LogicCores/0)
+
 Install
 -------
 
@@ -17,8 +21,8 @@ Install
 
 ### Commands
 
-		nvm use 4
-		npm install -g 0.workspace
+	nvm use 4
+	npm install -g 0.workspace
 
 
 Use-Cases
@@ -29,79 +33,79 @@ Create new project
 
 Start with Zero System as the foundation for your application.
 
-		mkdir myNewProject
-		cd myNewProject
+	mkdir myNewProject
+	cd myNewProject
 
-		0.workspace init [--inject-scripts]
-		git add .
-		git commit -m "Initialized 0.workspace"
-		npm install
-		0.workspace deploy
-		# See https://github.com/0system/0system.0#commands for more commands
+	0.workspace init [--inject-scripts]
+	git add .
+	git commit -m "Initialized 0.workspace"
+	npm install
+	0.workspace deploy
+	# See https://github.com/0system/0system.0#commands for more commands
 
 Wrap an existing project
 ------------------------
 
 Wrap an existing project with Zero System to enhance your development workflow.
 
-		cd myExistingProject
+	cd myExistingProject
 
-		0.workspace init [--inject-scripts]
-		git add .
-		git commit -m "Initialized 0.workspace"
-		npm install
-		0.workspace deploy
-		# See https://github.com/0system/0system.0#commands for more commands
+	0.workspace init [--inject-scripts]
+	git add .
+	git commit -m "Initialized 0.workspace"
+	npm install
+	0.workspace deploy
+	# See https://github.com/0system/0system.0#commands for more commands
 
 Work on a Zero System project
 -----------------------------
 
-		cd myZeroSystemProject
+	cd myZeroSystemProject
 
 ### On the command line
 
-		# If initialized with `0.workspace init --inject-scripts`
-		npm run <script>
-		# See https://github.com/0system/0system.0#commands for commands
+	# If initialized with `0.workspace init --inject-scripts`
+	npm run <script>
+	# See https://github.com/0system/0system.0#commands for commands
 
-		# Otherwise or anyway
-		0.workspace <command>
-		0w <command>
-		# Where commands are the same 'npm run' scripts as from https://github.com/0system/0system.0#commands
+	# Otherwise or anyway
+	0.workspace <command>
+	0w <command>
+	# Where commands are the same 'npm run' scripts as from https://github.com/0system/0system.0#commands
 
-		source scripts/activate.sh
-		# You now have the root context of your system loaded into your environment
+	source scripts/activate.sh
+	# You now have the root context of your system loaded into your environment
 
 ### In an IDE
 
-		0.workspace edit
+	0.workspace edit
 
 Work against a different Zero System clone
 ------------------------------------------
 
-		0.workspace --help
+	0.workspace --help
 
 Show the current version of Zero System used by your project:
 
-		0.workspace current
+	0.workspace current
 
 List installed versions:
 
-		0.workspace ls
+	0.workspace ls
 
 List available versions:
 
-		0.workspace ls-remote
+	0.workspace ls-remote
 
 Install a new version:
 
-		0.workspace install <version>
+	0.workspace install <version>
 
 Switch to a different version:
 
-		0.workspace use <version>
-		# NOTE: When switching to a different version this command makes changes
-		        to your workspace which need to be committed to git afterwards!
+	0.workspace use <version>
+	# NOTE: When switching to a different version this command makes changes
+		      to your workspace which need to be committed to git afterwards!
 
 Best practices
 --------------
@@ -116,13 +120,13 @@ Best practices
   7. Switch to a clone of the [github.com/0system/0system.0](https://github.com/0system/0system.0) inlined source release of Zero System if you need or want to patch Zero System. We encourage you to contribute your changes back to the community so everyone can benefit. *note: Point 2 from above equally applies*
   8. Run the *whole system test suite* against any **new deployment** and ensure *all new unique paths are test covered*.
   9. Attempt to *integrate every new feature* into the foundation that Zero System provides to the greatest extent possible and *seek guidance from others* where needed. Share your contributions with others whenever you can. Build your own ideas into your clone and give others the space to build their own ideas into their own clones. Agree as a community to learn from each other to build a meta platform that can accomodate everyones' unique way of thinking and working in a non-restrictive and whole-enhancing way.
-  10. Welcome every new user equally and know that condensed diversity to accomplish a common goal and satify a common need in a whole-enhancing way is an incredible force.
+  10. Welcome every user equally and know that condensed diversity to accomplish a common goal and satify a common need in a whole-enhancing way is an incredible force and requires mutually respectful inclusiveness.
 
 
 Governance
 ==========
 
-This project is governed by [Christoph Dorn](http://christophdorn.com) who is the original author and self-elected as the [Benevolent Dictator For Life](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) to continuously steer this project onto its originally intended goal of providing an **Open Source** and **Free Foundation** to build **Web Software Systems** on. **Every software user in the world** must be able to obtain a copy of Zero System and *deploy a customized instance* of it for **free; forever.**
+This project is governed by [Christoph Dorn](http://christophdorn.com) who is the original author and self-elected [Benevolent Dictator For Life](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) to continuously steer this project onto its originally intended goal of providing an **Open Source** and **Free Foundation** to build **Web Software Systems** on. **Every software user in the world** must be able to obtain a copy of Zero System and *deploy a customized instance* of it for **free; forever.**
 
 
 Provenance
