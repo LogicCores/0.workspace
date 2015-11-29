@@ -1,7 +1,7 @@
 0.workspace
 ===========
 
-The Zero System base workspace which you can deploy and add your stacks to.
+The [Zero System](http://ZeroSystem.io) base workspace which you can deploy and add your stacks to.
 
 You can have a complete *Web Software System* deployed in less than 5 minutes. After everything is confirmed running you can make incremental changes to shape it to your needs.
 
