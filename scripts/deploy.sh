@@ -28,6 +28,9 @@ function init {
 		git remote add "$PLATFORM_NAME" git@heroku.com:zerosystem-workspace.git > /dev/null || true
 
 
+		# TODO: Set 'Z0_REPOSITORY_URL' and 'Z0_REPOSITORY_COMMIT_ISH' based on package config
+		#       and optionally set to linked source if using dev sources.
+
 
 		BO_sourcePrototype ".0/0.CloudIDE.Genesis/scripts/deploy.sh" $@
 
