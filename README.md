@@ -1,3 +1,5 @@
+**Status: DEV**
+
 0.workspace
 ===========
 
@@ -16,7 +18,7 @@ Install
 
   * [NodeJS 4+](https://nodejs.org/)
   * [git](https://git-scm.com/)
-  * [Heroku](http://heroku.com/) Account
+  * Free [Heroku](http://heroku.com/) Account
   * OSX (only for now)
 
 ### Commands
