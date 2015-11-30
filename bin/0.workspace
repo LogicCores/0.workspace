@@ -6,8 +6,11 @@ var LIB = {
     fs: require("fs-extra"),
     minimist: require("minimist"),
     request: require("request"),
+    semver: require("semver"),
+    "cli-table": require("cli-table"),
     Promise: require("bluebird"),
-    colors: require("colors")
+    colors: require("colors"),
+    child_process: require("child_process")
 };
 LIB.Promise.promisifyAll(LIB.fs);
 LIB.fs.existsAsync = function (path) {
@@ -17,11 +20,52 @@ LIB.fs.existsAsync = function (path) {
 }
 LIB.Promise.promisifyAll(LIB.request);
 
+function runCommands (commands, options) {
+	return LIB.Promise.promisify(function (callback) {
+	    options = options || {}
+	    options.verbose = options.verbose || LIB.VERBOSE;
+	    options.env = options.env || process.env;
+		if (options.verbose) {
+			console.log("Running commands:", commands);
+			options.env.VERBOSE = "1";
+		}
+	    var proc = LIB.child_process.spawn("bash", [
+	        "-s"
+	    ], options);
+	    proc.on("error", function(err) {
+	    	return callback(err);
+	    });
+	    var stdout = [];
+	    var stderr = [];
+	    proc.stdout.on('data', function (data) {
+	    	stdout.push(data.toString());
+			if (options.verbose || options.progress) process.stdout.write(data);
+	    });
+	    proc.stderr.on('data', function (data) {
+	    	stderr.push(data.toString());
+			if (options.verbose || options.progress) process.stderr.write(data);
+	    });
+	    proc.stdin.write(commands.join("\n"));
+	    proc.stdin.end();
+	    proc.on('close', function (code) {
+	    	if (code) {
+	    		var err = new Error("Commands exited with code: " + code);
+	    		err.code = code;
+	    		err.stdout = stdout;
+	    		err.stderr = stderr;
+	    		console.error("err", err);
+	    		return callback(err);
+	    	}
+	        return callback(null, stdout.join(""));
+	    });
+	})();
+}
+
 
 exports.main = function (argv) {
 
     const REMOTE_SOURCE_REVISIONS_URL = "https://api.github.com/repos/0system/0system.0/tags";
-
+    const LOCAL_INSTALLS_PATH = LIB.path.join(process.env.BO_SYSTEM_CACHE_DIR, "github.com~0system~0system.0~/source/snapshot");
 
     function showUsage () {
         var lines = [];
@@ -35,7 +79,7 @@ exports.main = function (argv) {
         lines.push("  0w current                      Display currently activated version");
         lines.push("  0w ls                           List installed versions");
         lines.push("  0w ls-remote                    List remote versions available for install");
-        lines.push("  0w install [-s] <version/uri>   Download and install a <version/uri>, [-s] from source");
+        lines.push("  0w install <version/uri>        Download and install a <version/uri>");
         lines.push("  0w use <version/path>           Modify 'package.json' and './.0' to use <version/path>");
         lines.push("");
         lines.push("  0w update                       Pull changes, checkout submodules and re-install");
@@ -59,11 +103,131 @@ exports.main = function (argv) {
     }
     
     function loadCurrentStatus () {
-
-        return LIB.Promise.resolve({
-            version: {
-                current: null
+        function lookup (path) {
+            path = LIB.path.join(path, ".0");
+            return LIB.fs.existsAsync(path).then(function (exists) {
+                if (!exists) {
+                    return null;
+                };
+                return LIB.fs.lstatAsync(path).then(function (stat) {
+                    if (!stat.isSymbolicLink()) {
+                        if (stat.isDirectory()) {
+                            return lookup(path);
+                        }
+                        return LIB.fs.readFileAsync(path, "utf8").then(function (data) {
+                            if (data === ".") {
+                                return LIB.fs.realpathAsync(path);
+                            }
+                            return lookup(data);
+                        });
+                    }
+                    return LIB.fs.readlinkAsync(path).then(lookup);
+                });
+            });
+        }
+        return lookup(
+            process.cwd()
+        ).then(function (path) {
+            var status = {
+                path: null,
+                version: null
+            };
+            if (!path) {
+                return status;
             }
+            status.path = LIB.path.dirname(path);
+    		return runCommands([
+    		   'echo "tag: $(git describe --tags)"'
+    		], {
+    		    cwd: status.path,
+    		    verbose: LIB.VERBOSE
+    		}).then(function (stdout) {
+    		    status.version = stdout.match(/^tag: (.+)$/m)[1];
+                return status;
+    		});
+        });
+    }
+
+    function isRemoteTagEqualToLocalTag (remoteTag, localTag) {
+        var remote = remoteTag.match(/^(v\d+\.\d+\.\d+)-([^\.]+)(\.\d+\.(.+))?$/);
+        var local = localTag.match(/^(v\d+\.\d+\.\d+)(-\d+-(.+))?$/);
+        if (remote[4] === local[3]) {
+            return true;
+        }
+        if (
+            remote[1] === local[1] &&
+            remote[2] === "inline" &&
+            !local[2]
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    function loadRemote () {
+        return LIB.request.getAsync(REMOTE_SOURCE_REVISIONS_URL, {
+            headers: {
+                "User-Agent": "github.com/LogicCores/0.workspace using npm/request"
+            },
+            json: true
+        }).then(function (response) {
+            var tags = [];
+            response.body.forEach(function (tag) {
+                tags.push(tag.name);
+            });
+            tags = LIB.semver.sort(tags);
+            tags.reverse();
+            tags = tags.map(function (tag) {
+                var m = tag.match(/^v\d+\.\d+\.\d+-(inline|build)\.?/);
+                tag = {
+                    tag: tag,
+                    isUsing: function (status) {
+                        if (!status.version) return "";
+                        if (isRemoteTagEqualToLocalTag(tag.tag, status.version)) {
+                            return "  *";
+                        }
+                        return "";
+                    }
+                };
+                if (m) {
+                    tag.stream = m[1];
+                }
+                if (tag.stream === "inline") {
+                    tag.stability = "preview";
+                } else {
+                    tag.stability = tag.stream;
+                }
+                return tag;
+            }).filter(function (tag) {
+                return !!tag.stream;
+            });
+            return tags;
+        });
+    }
+
+    function loadInstalled () {
+        var installs = [];
+        return LIB.fs.existsAsync(LOCAL_INSTALLS_PATH).then(function (exists) {
+            if (!exists) {
+                return installs;
+            }
+            return LIB.fs.readdirAsync(LOCAL_INSTALLS_PATH).then(function (paths) {
+                paths.forEach(function (filename) {
+                    installs.push({
+                        tag: filename,
+                        isUsing: function (status) {
+                            if (!status.version) return "";
+                            if (isRemoteTagEqualToLocalTag(filename, status.version)) {
+                                return "  *";
+                            }
+                            return "";
+                        }
+                    });
+                });
+                return null;
+            });
+        }).then(function () {
+            return installs;
         });
     }
 
@@ -100,6 +264,11 @@ exports.main = function (argv) {
 */
 
         return LIB.Promise.try(function () {
+
+
+console.log("TODO: Run default command:", command);
+
+
             process.stdout.write(("\nError: Command '" + command + "' not found!\n").red);
             return showUsage();
         });
@@ -120,41 +289,106 @@ Init
             });
 
         case "current":
-            return LIB.Promise.try(function () {
-                return loadCurrentStatus().then(function (status) {
-                    if (!status.version.current) {
-                        throw new Error("No release linked!");
+            return loadCurrentStatus().then(function (status) {
+                if (!status.version) {
+                    throw new Error("No release linked!");
+                }
+                process.stdout.write(status.version + " (" + status.path + ")\n");
+                return null;
+            });
+
+        case "ls":
+            return loadCurrentStatus().then(function (status) {
+                return loadInstalled().then(function (tags) {
+                    if (Object.keys(tags).length === 0) {
+                        throw new Error("No installs found!");
                     }
-                    process.stdout.write(status.version.current + "\n");
+                    var table = new (LIB["cli-table"])({
+                        head: [
+                            'Using', 'Tag'
+                        ],
+                        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''}
+                    });
+                    tags.forEach(function (tag) {
+                        table.push(
+                            [
+                                tag.isUsing(status),
+                                tag.tag
+                            ]
+                        );
+                    });
+                    process.stdout.write(table.toString() + "\n");
                     return null;
                 });
             });
 
-        case "ls":
-            return LIB.Promise.try(function () {
-                
-            });
-
         case "ls-remote":
-            return LIB.Promise.try(function () {
-                return LIB.request.getAsync(REMOTE_SOURCE_REVISIONS_URL, {
-                    headers: {
-                        "User-Agent": "github.com/LogicCores/0.workspace using npm/request"
-                    },
-                    json: true
-                }).then(function (response) {
-                    response.body.forEach(function (tag) {
-                        process.stdout.write(tag.name + "\n");
+            return loadCurrentStatus().then(function (status) {
+                return loadRemote().then(function (tags) {
+                    var table = new (LIB["cli-table"])({
+                        head: [
+                            'Using', 'Tag', 'Stability'
+                        ],
+                        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''}
                     });
+                    tags.forEach(function (tag) {
+                        table.push(
+                            [
+                                tag.isUsing(status),
+                                tag.tag,
+                                tag.stability
+                            ]
+                        );
+                    });
+                    process.stdout.write(table.toString() + "\n");
                     return null;
                 });
             });
 
         case "install":
             return LIB.Promise.try(function () {
+                // If no version specified we run the workspace install script.
+                if (argv["_"].length === 0) {
+                    return runDefault();
+                }
+                
+                var version = argv["_"].shift();
+                
+                function resolveVersion (version) {
+                    return loadCurrentStatus().then(function (status) {
+                        if (
+                            version === "latest" ||
+                            /^\d+$/.test(version)
+                        ) {
+                            return loadRemote().then(function (tags) {
+                                var tag = null;
+                                if (version === "latest") {
+                                    tag = tags.shift();
+                                } else {
+                                    tag = tags.splice(parseInt(version), 1)[0];
+                                }
+                                if (tag.isUsing(status)) {
+                                    throw new Error("Already using the latest version!");
+                                }
+                                return tag.tag;
+                            });
+                        }
+                        if (isRemoteTagEqualToLocalTag(version, status.version)) {
+                            throw new Error("Already using the latest version!");
+                        }
+                        return version;
+                    });
+                }
 
-                // TODO: If no version specified run workspace install script.
-
+                return resolveVersion(version).then(function (version) {
+            		return runCommands([
+            		    '. ' + LIB.path.join(__dirname, "./0.workspace.proto.sh"),
+            		    '0.workspace.install "' + version + '"'
+            		], {
+            		    cwd: process.cwd(),
+            		    verbose: LIB.VERBOSE
+            		});
+                });
             });
 
         case "use":
