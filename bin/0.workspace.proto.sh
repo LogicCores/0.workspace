@@ -10,10 +10,9 @@ function init {
 	BO_deriveSelfDir ___TMP___ "$BO_SELF_BASH_SOURCE"
 	local __BO_DIR__="$___TMP___"
 
+	__BO_DIR__0_WORKSPACE__="$__BO_DIR__"
 
 	BO_sourcePrototype "$__BO_DIR__/../node_modules/node.pack/packers/git/packer.proto.sh"
-
-	__BO_DIR__0_WORKSPACE__="$__BO_DIR__"
 
 
     function source.0.workspace {
@@ -214,6 +213,8 @@ function init {
 		# We determine the Zero System uri and commit based on what is linked into the project.
 		pushd "$Z0_ROOT" > /dev/null
 		    git_getRemoteUrl "Z0_REPOSITORY_URL" "origin"
+		    # TODO: Use generic git url normalization lib here
+		    Z0_REPOSITORY_URL=`echo "$Z0_REPOSITORY_URL" | perl -pe 's/^git@([^:]+):(.+?)\.git$/git:\/\/$1\/$2.git/g'`
 		    export Z0_REPOSITORY_URL
 		    git_getTag "Z0_REPOSITORY_COMMIT_ISH"
 		    export Z0_REPOSITORY_COMMIT_ISH

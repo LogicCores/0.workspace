@@ -67,6 +67,40 @@ function runCommands (commands, options) {
 }
 
 
+function runCommand (command, args, options) {
+	return LIB.Promise.promisify(function (callback) {
+	    options = options || {}
+	    options.verbose = options.verbose || LIB.VERBOSE;
+	    var env = {};
+	    LIB._.assign(env, process.env);
+	    LIB._.assign(env, options.env || {});
+		if (options.verbose) {
+			console.log("Running command:", command, args);
+			env.VERBOSE = "1";
+		}
+		options.env = env;
+		options.stdio = "inherit";
+	    var proc = LIB.child_process.spawn(command, args, options);
+	    proc.on("error", function(err) {
+	    	return callback(err);
+	    });
+	    var stdout = [];
+	    var stderr = [];
+	    proc.on('close', function (code) {
+	    	if (code) {
+	    		var err = new Error("Commands exited with code: " + code);
+	    		err.code = code;
+	    		err.stdout = stdout;
+	    		err.stderr = stderr;
+	    		console.error("err", err);
+	    		return callback(err);
+	    	}
+	        return callback(null, stdout.join(""));
+	    });
+	})();
+}
+
+
 exports.main = function (argv) {
 
     var Z0_WORKSPACE_DIRPATH = process.env.Z0_WORKSPACE_DIRPATH;
@@ -97,29 +131,34 @@ exports.main = function (argv) {
         lines.push("");
         lines.push("Usage: ");
         lines.push("");
-        lines.push("  0w init [version/uri]           Add Zero System to a new or existing git project");
-        lines.push("  0w current                      Display currently activated version");
-        lines.push("  0w ls                           List installed versions");
-        lines.push("  0w ls-remote                    List remote versions available for install");
-        lines.push("  0w install <version/uri>        Download and install a <version/uri>");
-        lines.push("                                  Special versions: 'latest', 'latest-build'");
-        lines.push("  0w use <version/path>           Modify 'package.json' and './.0' to use <version/path>");
+        lines.push("  0w init [version/uri] [--commit]");
+        lines.push("                              Add Zero System to a new or existing git project");
+        lines.push("                              '--commit' will commit changes to git");
         lines.push("");
-        lines.push("  0w update                       Pull changes, checkout submodules and re-install");
-        lines.push("  0w edit                         Launch an editor");
-        lines.push("  0w dev                          Run system in development mode using development profile");
-        lines.push("  0w dev --production             Run system in production mode using production profile");
+        lines.push("  0w current                  Display currently activated version");
+        lines.push("  0w ls                       List installed versions");
+        lines.push("  0w ls-remote                List remote versions available for install");
+        lines.push("  0w install <version/uri>    Download and install a <version/uri>");
+        lines.push("                              Special versions: 'latest', 'latest-build'");
+        lines.push("  0w use <version/path>       Modify 'package.json' and './.0' to use <version/path>");
+        lines.push("");
+        lines.push("  0w update                   Pull changes, checkout submodules and re-install");
+        lines.push("  0w edit                     Launch an editor");
+        lines.push("  0w dev                      Run system in development mode using development profile");
+        lines.push("  0w dev --production         Run system in production mode using production profile");
         lines.push("  0w dev -- --profile ./Deployments/<name>.proto.profile.ccjson");
-        lines.push("                                  Run system in development mode using custom profile overlay");
-        lines.push("  0w encrypt                      Encrypt raw profile data using workspace secret");
-        lines.push("  0w test                         Run whole system test suite");
+        lines.push("                              Run system in development mode using custom profile overlay");
+        lines.push("  0w encrypt                  Encrypt raw profile data using workspace secret");
+        lines.push("  0w test                     Run whole system test suite");
         lines.push("");
-        lines.push("  0w bundle                       Freeze everything for consistent distribution");
-        lines.push("  0w deploy                       Deploy latest commit to staging");
-        lines.push("  0w deploy --production          Deploy latest commit to production");
-        lines.push("  0w publish                      Publish latest commit");
+        lines.push("  0w bundle                   Freeze everything for consistent distribution");
+        lines.push("  0w deploy [--production] [--commit] [--bundle]");
+        lines.push("                              Deploy latest commit to staging or production");
+        lines.push("                              '--commit' will commit configuration changes to git");
+        lines.push("                              '--bundle' will cause the remote deployment be be bundled after installation");
+        lines.push("  0w publish                  Publish latest commit");
         lines.push("");
-        lines.push("  0w start                        Run system in production mode using production profile");
+        lines.push("  0w start                    Run system in production mode using production profile");
         lines.push("");
         process.stdout.write(lines.join("\n") + "\n");
         return LIB.Promise.resolve();
@@ -288,36 +327,27 @@ exports.main = function (argv) {
         LIB.VERBOSE = true;
     }
 
+    if (argv["commit"]) {
+        process.env.Z0_PROJECT_AUTO_COMMIT_CHANGES="1";
+    }
+
     function runDefault () {
-
-// TODO: See if we can find a workspace script for the command and run that
-/*
-        lines.push("  0w update                  Pull changes, checkout submodules and re-install");
-        lines.push("  0w edit                    Launch an editor");
-        lines.push("  0w dev                     Run system in development mode using development profile");
-        lines.push("  0w dev --production        Run system in production mode using production profile");
-        lines.push("  0w dev -- --profile ./Deployments/<name>.proto.profile.ccjson");
-        lines.push("                                      Run system in development mode using custom profile overlay");
-        lines.push("  0w encrypt                 Encrypt raw profile data using workspace secret");
-        lines.push("  0w test                    Test system");
-        lines.push("");
-        lines.push("  0w bundle                  Freeze everything for consistent distribution");
-        lines.push("  0w deploy                  Deploy latest commit to staging");
-        lines.push("  0w deploy --production     Deploy latest commit to production");
-        lines.push("  0w publish                 Publish latest commit");
-        lines.push("");
-        lines.push("  0w start                   Run system in production mode using production profile");
-        lines.push("");
-*/
-
-        return LIB.Promise.try(function () {
-
-
-console.log("TODO: Run default command:", command);
-
-
-            process.stdout.write(("\nError: Command '" + command + "' not found!\n").red);
-            return showUsage();
+        function getScriptPathForCommand (command) {
+            var path = LIB.path.join(process.env.Z0_WORKSPACE_IMPLEMENTATION_PATH, "scripts", command + ".sh");
+            return LIB.fs.existsAsync(path).then(function (exists) {
+                if (!exists) return null;
+                return path;
+            });
+        }
+        return getScriptPathForCommand(command).then(function (path) {
+            if (!path) {
+                process.stdout.write(("\nError: Command '" + command + "' not found!\n").red);
+                return showUsage();
+            }
+    		return runCommand(path, process.argv.slice(2), {
+    		    cwd: process.cwd(),
+    		    verbose: LIB.VERBOSE
+    		});
         });
     }
 
@@ -440,15 +470,6 @@ console.log("TODO: Run default command:", command);
     		    verbose: LIB.VERBOSE
     		});
         });
-
-/*
-		if [ -z "$Z0_WORKSPACE_HOSTNAME" ]; then
-			echo "ERROR: 'Z0_WORKSPACE_HOSTNAME' environment variable not set!"
-			exit 1
-		fi
-		if [ -z "$Z0_WORKSPACE_NAMESPACE" ]; then
-
-*/
     }
 
     switch (command) {
