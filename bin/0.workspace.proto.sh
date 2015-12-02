@@ -1,8 +1,4 @@
 #!/bin/bash -e
-if [ -z "$npm_config_argv" ]; then
-	echo "ERROR: Must run with 'npm install'!"
-	exit 1
-fi
 if [ -z "$HOME" ]; then
 	echo "ERROR: 'HOME' environment variable is not set!"
 	exit 1
@@ -15,50 +11,85 @@ function init {
 	local __BO_DIR__="$___TMP___"
 
 
+	BO_sourcePrototype "$__BO_DIR__/../node_modules/node.pack/packers/git/packer.proto.sh"
+
+	__BO_DIR__0_WORKSPACE__="$__BO_DIR__"
+
+
     function source.0.workspace {
-        if [ -z "$BO_SYSTEM_CACHE_DIR" ]; then
-        	export BO_SYSTEM_CACHE_DIR="$HOME/.Z0/.bash.origin.cache"
-        fi
-    	if [ -z "$Z0_HOME" ]; then
-    		export Z0_HOME="$HOME/.Z0"
-    	fi
-        if [ -z "$Z0_REPOSITORY_COMMIT_ISH" ]; then
-        	if [ ! -z "$npm_package_config_Z0_REPOSITORY_COMMIT_ISH" ]; then
-        		Z0_REPOSITORY_COMMIT_ISH="$npm_package_config_Z0_REPOSITORY_COMMIT_ISH"
-        	else
-        		Z0_REPOSITORY_COMMIT_ISH="master"
+
+		if [ -z "$Z0_WORKSPACE_DIRPATH" ] || [ "$1" == "force" ]; then
+			export Z0_WORKSPACE_DIRPATH="$PWD"
+	    	# If '$PWD' is not a Zero System workspace and it contains a `0.workspace` directory
+	    	# we use the `0.workspace` directory as workspace root. (which is the 'wrapped' project layout)
+	    	if [ ! -e "$Z0_WORKSPACE_DIRPATH/PINF.Genesis.ccjson" ] && [ -e "$Z0_WORKSPACE_DIRPATH/0.workspace" ]; then 
+		    	export Z0_WORKSPACE_DIRPATH="$Z0_WORKSPACE_DIRPATH/0.workspace"
+			fi
+		fi
+    	BO_log "$VERBOSE" "Z0_WORKSPACE_DIRPATH: $Z0_WORKSPACE_DIRPATH"
+
+		eval `node --eval '
+			var descriptorPath = "'$Z0_WORKSPACE_DIRPATH'/package.json";
+			if (!require("fs").existsSync(descriptorPath)) process.exit(0);
+			var descriptor = require(descriptorPath);
+			if (descriptor.config) {
+				if (descriptor.config.Z0_REPOSITORY_URL) {
+					process.stdout.write("DESCRIPTOR_Z0_REPOSITORY_URL=\"" + descriptor.config.Z0_REPOSITORY_URL + "\"\n");
+				}
+				if (descriptor.config.Z0_REPOSITORY_COMMIT_ISH) {
+					process.stdout.write("DESCRIPTOR_Z0_REPOSITORY_COMMIT_ISH=\"" + descriptor.config.Z0_REPOSITORY_COMMIT_ISH + "\"\n");
+				}
+			}
+		'`
+        if [ -z "$Z0_REPOSITORY_COMMIT_ISH" ] || [ "$1" == "force" ]; then
+        	if [ ! -z "$DESCRIPTOR_Z0_REPOSITORY_COMMIT_ISH" ]; then
+        		export Z0_REPOSITORY_COMMIT_ISH="$DESCRIPTOR_Z0_REPOSITORY_COMMIT_ISH"
         	fi
         fi
-        if [ -z "$Z0_REPOSITORY_URL" ]; then
-        	if [ ! -z "$npm_package_config_Z0_REPOSITORY_URL" ]; then
-        		Z0_REPOSITORY_URL="$npm_package_config_Z0_REPOSITORY_URL"
+        if [ -z "$Z0_REPOSITORY_URL" ] || [ "$1" == "force" ]; then
+        	if [ ! -z "$DESCRIPTOR_Z0_REPOSITORY_URL" ]; then
+        		export Z0_REPOSITORY_URL="$DESCRIPTOR_Z0_REPOSITORY_URL"
         	else
-        		Z0_REPOSITORY_URL="git://github.com/0system/0system.0.git"
+        		export Z0_REPOSITORY_URL="git://github.com/0system/0system.0.git"
         	fi
         fi
-#    	MANIPULATE_Z0_ROOT="0"
-    	if [ -z "$Z0_ROOT" ]; then
-    		if [ -e "$__BO_DIR__/../0" ]; then
-    			BO_realpath "Z0_ROOT" "$__BO_DIR__/../0"
-    		# Used when called via 'npm install 0.workspace' as '0' submodule is not present
-    		elif [ -e "../../.0" ]; then
-    			BO_realpath "Z0_ROOT" "../../.0"
-    		else
-#    			MANIPULATE_Z0_ROOT="1"
-				# We assume that this path will be provisioned before it is used.
-    			BO_realpath "Z0_ROOT" "../../.0"
-#    			Z0_ROOT="$Z0_INSTALLS_DIRPATH/$Z0_REPOSITORY_COMMIT_ISH"
-    		fi
+        DESCRIPTOR_Z0_REPOSITORY_URL=""
+        DESCRIPTOR_Z0_REPOSITORY_COMMIT_ISH=""
+    	BO_log "$VERBOSE" "Z0_REPOSITORY_URL: $Z0_REPOSITORY_URL"
+    	BO_log "$VERBOSE" "Z0_REPOSITORY_COMMIT_ISH: $Z0_REPOSITORY_COMMIT_ISH"
+
+    	if [ -z "$Z0_POINTER_PATH" ] || [ "$1" == "force" ]; then
+			export Z0_POINTER_PATH="$Z0_WORKSPACE_DIRPATH/.0"
     	fi
-    	BO_log "$VERBOSE" "Z0_HOME: $Z0_HOME"
+    	BO_log "$VERBOSE" "Z0_POINTER_PATH: $Z0_POINTER_PATH"
+
+    	if [ -z "$Z0_WORKSPACE_IMPLEMENTATION_PATH" ] || [ "$1" == "force" ]; then
+    		export Z0_WORKSPACE_IMPLEMENTATION_PATH="$Z0_POINTER_PATH/0.CloudIDE.Genesis"
+    	fi
+    	BO_log "$VERBOSE" "Z0_WORKSPACE_IMPLEMENTATION_PATH: $Z0_WORKSPACE_IMPLEMENTATION_PATH"
+
+		if [ -z "$Z0_ROOT" ] || [ "$1" == "force" ]; then
+			if [ -e "$Z0_POINTER_PATH" ]; then
+				BO_followPointer "Z0_ROOT" "$(dirname $Z0_POINTER_PATH)" "$(basename $Z0_POINTER_PATH)"
+				export Z0_ROOT
+			fi
+		fi
     	BO_log "$VERBOSE" "Z0_ROOT: $Z0_ROOT"
     }
 
     function 0.workspace.install.path {
         source.0.workspace
-		BO_systemCachePath "$1" \
-			`echo "$Z0_REPOSITORY_URL" | perl -pe 's/^git:\/\/|\.git$//g'` \
-			"$2"
+		if [[ $2 == .* ]] || [[ $2 == /* ]]; then
+			if [ ! -e "$2" ]; then
+				echo "ERROR: Path '$2' does not exist!"
+				exit 1
+			fi
+			BO_setResult "$1" "$2"
+		else
+			BO_systemCachePath "$1" \
+				`echo "$Z0_REPOSITORY_URL" | perl -pe 's/^git:\/\/|\.git$//g'` \
+				"$2"
+		fi
 	}
 
     function 0.workspace.install {
@@ -68,21 +99,21 @@ function init {
 		Z0_REPOSITORY_COMMIT_ISH="$1"
 		BO_log "$VERBOSE" "Z0_REPOSITORY_COMMIT_ISH: $Z0_REPOSITORY_COMMIT_ISH"
 		
-		0.workspace.install.path "ZO_INSTALL_PATH" "$Z0_REPOSITORY_COMMIT_ISH"
-		BO_log "$VERBOSE" "ZO_INSTALL_PATH: $ZO_INSTALL_PATH"
+		0.workspace.install.path "Z0_INSTALL_PATH" "$Z0_REPOSITORY_COMMIT_ISH"
+		BO_log "$VERBOSE" "Z0_INSTALL_PATH: $Z0_INSTALL_PATH"
 
-        BO_log "$VERBOSE" "Ensure repo '$Z0_REPOSITORY_URL' is cloned to '$ZO_INSTALL_PATH' for commit-ish '$Z0_REPOSITORY_COMMIT_ISH'"
+        BO_log "$VERBOSE" "Ensure repo '$Z0_REPOSITORY_URL' is cloned to '$Z0_INSTALL_PATH' for commit-ish '$Z0_REPOSITORY_COMMIT_ISH'"
 					
 		function cloneAndInstall {
 
-		    if [ ! -e "$ZO_INSTALL_PATH" ]; then
-			    if [ ! -e "$(dirname $ZO_INSTALL_PATH)" ]; then
-			        mkdir -p "$(dirname $ZO_INSTALL_PATH)"
+		    if [ ! -e "$Z0_INSTALL_PATH" ]; then
+			    if [ ! -e "$(dirname $Z0_INSTALL_PATH)" ]; then
+			        mkdir -p "$(dirname $Z0_INSTALL_PATH)"
 		        fi
-		        git clone "$Z0_REPOSITORY_URL" "$ZO_INSTALL_PATH"
+		        git clone "$Z0_REPOSITORY_URL" "$Z0_INSTALL_PATH"
 		    fi
 
-			pushd "$ZO_INSTALL_PATH" > /dev/null
+			pushd "$Z0_INSTALL_PATH" > /dev/null
 	    		BO_log "$VERBOSE" "Checkout commit-ish: $Z0_REPOSITORY_COMMIT_ISH"
 
 			    git reset --hard
@@ -91,21 +122,21 @@ function init {
 			    git pull origin "$Z0_REPOSITORY_COMMIT_ISH" || true
 			    git clean -df
 
-	    		BO_log "$VERBOSE" "Ensure installed '$Z0_ROOT'"
+	    		BO_log "$VERBOSE" "Ensure installed '$Z0_POINTER_PATH'"
 				npm install
 
-				touch ".done"
+				touch ".installed"
 			popd > /dev/null
 		}
 
-	    if [ -e "$ZO_INSTALL_PATH" ]; then
-    		if [ ! -e "$ZO_INSTALL_PATH/.done" ]; then
-    			FAILED_DIR="$ZO_INSTALL_PATH.failed.$(date +"%Y-%m-%d_%H-%M-%S")"
-	    		BO_log "$VERBOSE" "'.done' not found in '$ZO_INSTALL_PATH' so we move everything to '$FAILED_DIR'"
-	    		mv "$ZO_INSTALL_PATH" "$FAILED_DIR"
+	    if [ -e "$Z0_INSTALL_PATH" ]; then
+    		if [ ! -e "$Z0_INSTALL_PATH/.installed" ]; then
+    			FAILED_DIR="$Z0_INSTALL_PATH.failed.$(date +"%Y-%m-%d_%H-%M-%S")"
+	    		BO_log "$VERBOSE" "'.installed' not found in '$Z0_INSTALL_PATH' so we move everything to '$FAILED_DIR'"
+	    		mv "$Z0_INSTALL_PATH" "$FAILED_DIR"
 				cloneAndInstall
 			else
-	    		BO_log "$VERBOSE" "Found installed zero system implementation at '$ZO_INSTALL_PATH'"
+	    		BO_log "$VERBOSE" "Found installed zero system implementation at '$Z0_INSTALL_PATH'"
 			fi
 		else
 			cloneAndInstall
@@ -121,14 +152,74 @@ function init {
 		Z0_REPOSITORY_COMMIT_ISH="$1"
 		BO_log "$VERBOSE" "Z0_REPOSITORY_COMMIT_ISH: $Z0_REPOSITORY_COMMIT_ISH"
 
-		0.workspace.install.path "ZO_INSTALL_PATH" "$Z0_REPOSITORY_COMMIT_ISH"
-		BO_log "$VERBOSE" "ZO_INSTALL_PATH: $ZO_INSTALL_PATH"
+		0.workspace.install.path "Z0_INSTALL_PATH" "$Z0_REPOSITORY_COMMIT_ISH"
+		BO_log "$VERBOSE" "Z0_INSTALL_PATH: $Z0_INSTALL_PATH"
+		
+		if [ -L "$Z0_POINTER_PATH" ]; then
+			if [ -h "$Z0_POINTER_PATH" ] && [ "$(readlink $Z0_POINTER_PATH)" == "$Z0_INSTALL_PATH" ]; then
+				echo "Warning: Already using package '$Z0_REPOSITORY_COMMIT_ISH'"
+				exit 0;
+			fi
+		elif [ -d "$Z0_POINTER_PATH" ] ; then
+			echo "ERROR: We found a directory at '$Z0_POINTER_PATH' which should never happen! It must be a symlink or file containing a path."
+			exit 1
+		fi
 
-		# TODO: If we have a submodule we need to remove it after confirmation.
+		if [ ! -e "$Z0_INSTALL_PATH" ]; then
+			echo "ERROR: No install found for version '$Z0_REPOSITORY_COMMIT_ISH' at path '$Z0_INSTALL_PATH'!"
+			exit 1
+		fi
 
-		BO_log "$VERBOSE" "Using zero system implementation from '$ZO_INSTALL_PATH' for '$PWD/.0'"
-		rm -f ".0" || true
-		ln -s "$ZO_INSTALL_PATH" ".0"
+		# Remove old link
+		rm -Rf "$Z0_POINTER_PATH" > /dev/null || true
+
+		# Create new link
+		BO_log "$VERBOSE" "Using zero system implementation from '$Z0_INSTALL_PATH' for '$Z0_POINTER_PATH'"
+		ln -s "$Z0_INSTALL_PATH" "$Z0_POINTER_PATH"
+
+		# Update package descriptor
+		pushd "$Z0_INSTALL_PATH" > /dev/null
+			git_getRemoteUrl "REMOTE_URL" "origin"
+			git_getTag "COMMIT_ISH"
+		popd > /dev/null
+
+		BO_log "$VERBOSE" "Updating package descriptor at '$Z0_WORKSPACE_DIRPATH/package.json'"
+		node --eval '
+			var descriptorPath = "'$Z0_WORKSPACE_DIRPATH'/package.json";
+			// If file does not exist we ignore writing it.
+			if (!require("fs").existsSync(descriptorPath)) process.exit(0);
+			var descriptor = require(descriptorPath);
+			var before = JSON.stringify(descriptor, null, 4);
+			if (!descriptor.config) descriptor.config = {};
+			descriptor.config.Z0_REPOSITORY_URL = "'$REMOTE_URL'";
+			descriptor.config.Z0_REPOSITORY_COMMIT_ISH = "'$COMMIT_ISH'";
+			var after = JSON.stringify(descriptor, null, 4);
+			if (after !== before) {
+				require("fs").writeFileSync("'$Z0_WORKSPACE_DIRPATH'/package.json", after, "utf8");
+			}
+		'
+
+		BO_format "$VERBOSE" "FOOTER"
 	}
+
+    function 0.workspace.init {
+        source.0.workspace
+		BO_format "$VERBOSE" "HEADER" "Initializing ZeroSystem workspace ..."
+
+		# TODO: Check '$Z0_WORKSPACE_IMPLEMENTATION_PATH/package.json' to find location of 'provision' aspect.
+		BO_sourcePrototype "$Z0_WORKSPACE_IMPLEMENTATION_PATH/Aspects/provision/server.plugin.proto.sh"
+
+		z0.aspect.provision $@
+
+		# If in source mode we link the `0.workspace` package in the project to ourselves.
+		if [ -e "$__BO_DIR__0_WORKSPACE__/../0" ]; then
+			BO_log "$VERBOSE" "Linking '0.workspace' into project as we are in source mode"
+			mkdir "$Z0_WORKSPACE_DIRPATH/node_modules"
+			ln -s "$(dirname $__BO_DIR__0_WORKSPACE__)" "$Z0_WORKSPACE_DIRPATH/node_modules/0.workspace"
+		fi
+
+		BO_format "$VERBOSE" "FOOTER"
+	}
+
 }
 init $@

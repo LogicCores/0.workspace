@@ -37,40 +37,43 @@ Start with Zero System as the foundation for your application.
 
 	mkdir myNewProject
 	cd myNewProject
+	# Assuming EMPTY directory
 
-	0.workspace init [--inject-scripts]
+	0.workspace init
 	git add .
 	git commit -m "Initialized 0.workspace"
-	npm install
-	0.workspace deploy
+	npm install    # or `0.workspace install`
+	0.workspace dev   # to work on it locally
+	0.workspace deploy   # to deploy it remotely
 	# See https://github.com/0system/0system.0#commands for more commands
 
 Wrap an existing project
 ------------------------
 
-Wrap an existing project with Zero System to enhance your development workflow.
+Wrap an existing project with Zero System to enhance your development workflow. Instead of provisioning the workspace at the root of the project (as is the case for *new* projects) it will be put into a `0.workspace` folder.
 
 	cd myExistingProject
+	# Assuming NON-EMPTY directory
 
-	0.workspace init [--inject-scripts]
+	0.workspace init
 	git add .
 	git commit -m "Initialized 0.workspace"
-	npm install
-	0.workspace deploy
+	0.install install   # or `cd 0.workspace; npm install`
+	0.workspace dev   # to work on it locally
+	0.workspace deploy   # to deploy it remotely
 	# See https://github.com/0system/0system.0#commands for more commands
 
 Work on a Zero System project
 -----------------------------
 
-	cd myZeroSystemProject
+	cd myNewProject
+	# or
+	cd myExistingProject/0.workspace   # to run `npm run` scripts
 
 ### On the command line
 
-	# If initialized with `0.workspace init --inject-scripts`
-	npm run <script>
-	# See https://github.com/0system/0system.0#commands for commands
-
-	# Otherwise or anyway
+	# These are equivalent
+	npm run <command>
 	0.workspace <command>
 	0w <command>
 	# Where commands are the same 'npm run' scripts as from https://github.com/0system/0system.0#commands

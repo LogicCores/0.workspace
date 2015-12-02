@@ -1,8 +1,4 @@
 #!/bin/bash -e
-if [ -z "$npm_config_argv" ]; then
-	echo "ERROR: Must run with 'npm install'!"
-	exit 1
-fi
 if [ -z "$HOME" ]; then
 	echo "ERROR: 'HOME' environment variable is not set!"
 	exit 1
@@ -48,6 +44,15 @@ function init {
 
 		pushd "$WORKSPACE_DIRECTORY" > /dev/null
 
+			# Link dependencies for which we have sources
+			if [ -e "0" ]; then
+				rm -Rf "node_modules/bash.origin"
+				ln -s "../0/lib/bash.origin" "node_modules/bash.origin"
+				rm -Rf "node_modules/node.pack"
+				ln -s "../0/lib/node.pack" "node_modules/node.pack"
+			fi
+
+			# We only link Zero System on expansion if not already linked.
 			if [ ! -e ".0" ]; then
 				0.workspace.install "$Z0_REPOSITORY_COMMIT_ISH"
 				0.workspace.use "$Z0_REPOSITORY_COMMIT_ISH"
