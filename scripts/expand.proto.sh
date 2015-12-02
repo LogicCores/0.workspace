@@ -11,7 +11,7 @@ function init {
 	local __BO_DIR__="$___TMP___"
 
 
-    local OUR_BASE_PATH="$__BO_DIR__/.."
+    __BO_DIR__0_WORKSPACE__="$__BO_DIR__"
 
 
 	function InstallConcreteWorkspace {
@@ -24,7 +24,7 @@ function init {
 		BO_log "$VERBOSE" "WORKSPACE_DIR: $WORKSPACE_DIR"
 		pushd "$WORKSPACE_DIR" > /dev/null
 
-			BO_sourcePrototype "$OUR_BASE_PATH/scripts/expand.sh" $@
+			BO_sourcePrototype "$__BO_DIR__0_WORKSPACE__/expand.sh" $@
 
 			# We use the ZeroSystem activate script as the workspace is not required at runtime
 			# and should not be required to install dependencies.

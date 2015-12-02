@@ -18,8 +18,13 @@ function init {
 
     function source.0.workspace {
 
+		if [ -z "$Z0_PROJECT_DIRPATH" ] || [ "$1" == "force" ]; then
+			export Z0_PROJECT_DIRPATH="$PWD"
+		fi
+    	BO_log "$VERBOSE" "Z0_PROJECT_DIRPATH: $Z0_PROJECT_DIRPATH"
+
 		if [ -z "$Z0_WORKSPACE_DIRPATH" ] || [ "$1" == "force" ]; then
-			export Z0_WORKSPACE_DIRPATH="$PWD"
+			export Z0_WORKSPACE_DIRPATH="$Z0_PROJECT_DIRPATH"
 	    	# If '$PWD' is not a Zero System workspace and it contains a `0.workspace` directory
 	    	# we use the `0.workspace` directory as workspace root. (which is the 'wrapped' project layout)
 	    	if [ ! -e "$Z0_WORKSPACE_DIRPATH/PINF.Genesis.ccjson" ] && [ -e "$Z0_WORKSPACE_DIRPATH/0.workspace" ]; then 
@@ -171,7 +176,7 @@ function init {
 		fi
 
 		# Remove old link
-		rm -Rf "$Z0_POINTER_PATH" > /dev/null || true
+		rm -Rf "$Z0_POINTER_PATH" 2> /dev/null || true
 
 		# Create new link
 		BO_log "$VERBOSE" "Using zero system implementation from '$Z0_INSTALL_PATH' for '$Z0_POINTER_PATH'"
@@ -195,7 +200,7 @@ function init {
 			descriptor.config.Z0_REPOSITORY_COMMIT_ISH = "'$COMMIT_ISH'";
 			var after = JSON.stringify(descriptor, null, 4);
 			if (after !== before) {
-				require("fs").writeFileSync("'$Z0_WORKSPACE_DIRPATH'/package.json", after, "utf8");
+				require("fs").writeFileSync(descriptorPath, after, "utf8");
 			}
 		'
 
@@ -206,16 +211,67 @@ function init {
         source.0.workspace
 		BO_format "$VERBOSE" "HEADER" "Initializing ZeroSystem workspace ..."
 
+		# We determine the Zero System uri and commit based on what is linked into the project.
+		pushd "$Z0_ROOT" > /dev/null
+		    git_getRemoteUrl "Z0_REPOSITORY_URL" "origin"
+		    export Z0_REPOSITORY_URL
+		    git_getTag "Z0_REPOSITORY_COMMIT_ISH"
+		    export Z0_REPOSITORY_COMMIT_ISH
+		popd > /dev/null
+
 		# TODO: Check '$Z0_WORKSPACE_IMPLEMENTATION_PATH/package.json' to find location of 'provision' aspect.
 		BO_sourcePrototype "$Z0_WORKSPACE_IMPLEMENTATION_PATH/Aspects/provision/server.plugin.proto.sh"
 
+		# We use the workspace implementation to provision the workspace.
 		z0.aspect.provision $@
+
+		# Now we enhance the workspace by configuring it from a higher level
+		# TODO: Move this into '0.PING.Genesis'
 
 		# If in source mode we link the `0.workspace` package in the project to ourselves.
 		if [ -e "$__BO_DIR__0_WORKSPACE__/../0" ]; then
 			BO_log "$VERBOSE" "Linking '0.workspace' into project as we are in source mode"
 			mkdir "$Z0_WORKSPACE_DIRPATH/node_modules"
 			ln -s "$(dirname $__BO_DIR__0_WORKSPACE__)" "$Z0_WORKSPACE_DIRPATH/node_modules/0.workspace"
+		fi
+
+		# Create profile seed file
+		if [ ! -e "$Z0_WORKSPACE_DIRPATH.profile.seed.sh" ]; then
+			BO_log "$VERBOSE" "Writing project seed file to '$Z0_WORKSPACE_DIRPATH.profile.seed.sh'"
+			if [ -e "$(dirname $Z0_WORKSPACE_DIRPATH)/.secret/profile.seed.sh" ]; then
+				# We can write a seed pointer file
+				echo '#!/bin/bash
+# Source https://github.com/bash-origin/bash.origin
+. "$HOME/.bash.origin"
+function init {
+	eval BO_SELF_BASH_SOURCE="$BO_READ_SELF_BASH_SOURCE"
+	BO_deriveSelfDir ___TMP___ "$BO_SELF_BASH_SOURCE"
+	local __BO_DIR__="$___TMP___"
+
+
+    BO_sourcePrototype "$__BO_DIR__/.secret/profile.seed.sh"
+
+}
+init $@' > "$Z0_WORKSPACE_DIRPATH.profile.seed.sh"
+			else
+				# We generate our own seed keys
+				echo '#!/bin/bash
+# Source https://github.com/bash-origin/bash.origin
+. "$HOME/.bash.origin"
+function init {
+	eval BO_SELF_BASH_SOURCE="$BO_READ_SELF_BASH_SOURCE"
+	BO_deriveSelfDir ___TMP___ "$BO_SELF_BASH_SOURCE"
+	local __BO_DIR__="$___TMP___"
+
+
+	export PIO_PROFILE_KEY="'$(uuidgen)'"
+
+	# This is SUPER SECRET! Keep it safe!
+	export PIO_PROFILE_SECRET="'$(uuidgen)'"
+
+}
+init $@' > "$Z0_WORKSPACE_DIRPATH.profile.seed.sh"
+			fi
 		fi
 
 		BO_format "$VERBOSE" "FOOTER"

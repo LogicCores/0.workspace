@@ -423,10 +423,6 @@ console.log("TODO: Run default command:", command);
                 if (!process.env.Z0_WORKSPACE_NAMESPACE) {
                     process.env.Z0_WORKSPACE_NAMESPACE = reverse(process.env.Z0_WORKSPACE_HOSTNAME);
                 }
-
-console.log("process.env.Z0_WORKSPACE_NAMESPACE", process.env.Z0_WORKSPACE_NAMESPACE);                
-console.log("process.env.Z0_WORKSPACE_HOSTNAME", process.env.Z0_WORKSPACE_HOSTNAME);                
-                
                 return null;
             });
         }
