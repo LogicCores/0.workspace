@@ -67,11 +67,6 @@ function init {
     	fi
     	BO_log "$VERBOSE" "Z0_POINTER_PATH: $Z0_POINTER_PATH"
 
-    	if [ -z "$Z0_WORKSPACE_IMPLEMENTATION_PATH" ] || [ "$1" == "force" ]; then
-    		export Z0_WORKSPACE_IMPLEMENTATION_PATH="$Z0_POINTER_PATH/0.CloudIDE.Genesis"
-    	fi
-    	BO_log "$VERBOSE" "Z0_WORKSPACE_IMPLEMENTATION_PATH: $Z0_WORKSPACE_IMPLEMENTATION_PATH"
-
 		if [ -z "$Z0_ROOT" ] || [ "$1" == "force" ]; then
 			if [ -e "$Z0_POINTER_PATH" ]; then
 				BO_followPointer "Z0_ROOT" "$(dirname $Z0_POINTER_PATH)" "$(basename $Z0_POINTER_PATH)"
@@ -79,6 +74,11 @@ function init {
 			fi
 		fi
     	BO_log "$VERBOSE" "Z0_ROOT: $Z0_ROOT"
+
+    	if [ -z "$Z0_WORKSPACE_IMPLEMENTATION_PATH" ] || [ "$1" == "force" ]; then
+    		export Z0_WORKSPACE_IMPLEMENTATION_PATH="$Z0_ROOT/0.CloudIDE.Genesis"
+    	fi
+    	BO_log "$VERBOSE" "Z0_WORKSPACE_IMPLEMENTATION_PATH: $Z0_WORKSPACE_IMPLEMENTATION_PATH"
     }
 
     function 0.workspace.install.path {

@@ -11,10 +11,15 @@ function init {
 	local __BO_DIR__="$___TMP___"
 
 
+	BO_ensure_nvm
+	BO_VERSION_NVM_NODE="4"
+	nvm use $BO_VERSION_NVM_NODE || nvm install $BO_VERSION_NVM_NODE
+
+
 	BO_sourcePrototype "$__BO_DIR__/0.workspace.proto.sh"
 
 	# NOTE: When calling the `0.workspace` command directly we do NOT allow
-	#       overriding of environment variables!If you need to, source the
+	#       overriding of environment variables! If you need to, source the
 	#       '0.workspace.proto.sh' file and call the functions directly
 	#       just like '0.workspace.js' does.
 	source.0.workspace "force"

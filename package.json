@@ -11,6 +11,7 @@
     },
     "scripts": {
         "install": "scripts/install.sh",
+        "test": "scripts/test.sh",
         "start": ".0/0.CloudIDE.Genesis/scripts/run.sh",
         "dev": ".0/0.CloudIDE.Genesis/scripts/dev.sh",
         "deploy": ".0/0.CloudIDE.Genesis/scripts/deploy.sh",

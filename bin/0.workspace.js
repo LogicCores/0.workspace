@@ -131,8 +131,9 @@ exports.main = function (argv) {
         lines.push("");
         lines.push("Usage: ");
         lines.push("");
-        lines.push("  0w init [version/uri] [--commit]");
+        lines.push("  0w init [-y] [version/uri] [--commit]");
         lines.push("                              Add Zero System to a new or existing git project");
+        lines.push("                              '-y' proceed with all defaults");
         lines.push("                              '--commit' will commit changes to git");
         lines.push("");
         lines.push("  0w current                  Display currently activated version");
@@ -344,7 +345,7 @@ exports.main = function (argv) {
                 process.stdout.write(("\nError: Command '" + command + "' not found!\n").red);
                 return showUsage();
             }
-    		return runCommand(path, process.argv.slice(2), {
+    		return runCommand(path, process.argv.slice(3), {
     		    cwd: process.cwd(),
     		    verbose: LIB.VERBOSE
     		});
@@ -420,7 +421,7 @@ exports.main = function (argv) {
         });
     }
 
-    function initProject () {
+    function initProject (options) {
 
         function ensureEnvironmentVariables () {
             function reverse (string) {
@@ -434,12 +435,16 @@ exports.main = function (argv) {
                     if (process.env.Z0_WORKSPACE_NAMESPACE) {
                         process.env.Z0_WORKSPACE_HOSTNAME = reverse(process.env.Z0_WORKSPACE_NAMESPACE);
                     } else {
-                        questions.push({
-                            type: "input",
-                            name: "Z0_WORKSPACE_HOSTNAME",
-                            message: "Please enter the project hostname",
-                            default: reverse(LIB.path.basename(Z0_WORKSPACE_DIRPATH))
-                        });
+                        if (options.useDefaults) {
+                            process.env.Z0_WORKSPACE_HOSTNAME = reverse(LIB.path.basename(Z0_WORKSPACE_DIRPATH));
+                        } else {
+                            questions.push({
+                                type: "input",
+                                name: "Z0_WORKSPACE_HOSTNAME",
+                                message: "Please enter the project hostname",
+                                default: reverse(LIB.path.basename(Z0_WORKSPACE_DIRPATH))
+                            });
+                        }
                     }
                 }
                 if (questions.length === 0) {
@@ -521,7 +526,9 @@ exports.main = function (argv) {
                         var version = argv["_"].shift() || "latest";
                         return installVersion(version).then(function () {
                             return useVersion(version, true).then(function () {
-                                return initProject();
+                                return initProject({
+                                    useDefaults: argv["y"] || false
+                                });
                             });
                         });
                     });

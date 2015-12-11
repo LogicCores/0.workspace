@@ -40,8 +40,6 @@ Start with Zero System as the foundation for your application.
 	# Assuming EMPTY directory
 
 	0.workspace init --commit
-	git add .
-	git commit -m "Initialized 0.workspace"
 	npm install    # or `0.workspace install`
 	0.workspace dev   # to work on it locally
 	0.workspace deploy --commit   # to deploy it remotely
@@ -56,8 +54,6 @@ Wrap an existing project with Zero System to enhance your development workflow. 
 	# Assuming NON-EMPTY directory
 
 	0.workspace init --commit
-	git add .
-	git commit -m "Initialized 0.workspace"
 	0.install install   # or `cd 0.workspace; npm install`
 	0.workspace dev   # to work on it locally
 	0.workspace deploy --commit   # to deploy it remotely
